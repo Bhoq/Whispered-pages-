@@ -535,6 +535,42 @@
       color: var(--ink-soft); margin-bottom: 14px;
     }
 
+    /* ─── Language Selector ──────────────────────────────────────── */
+    .lang-selector {
+      position: relative; flex-shrink: 0;
+    }
+    .lang-btn {
+      background: none; border: 1px solid #57534E;
+      color: var(--parchment); padding: 7px 10px;
+      border-radius: var(--radius); font-size: 12px;
+      font-family: var(--font-body); font-weight: 600;
+      cursor: pointer; display: flex; align-items: center;
+      gap: 5px; transition: all 0.18s; white-space: nowrap;
+    }
+    .lang-btn:hover { border-color: var(--terracotta); color: var(--terracotta); }
+    .lang-flag { font-size: 14px; line-height: 1; }
+    .lang-dropdown {
+      position: absolute; top: calc(100% + 6px); right: 0;
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); min-width: 160px;
+      box-shadow: 0 8px 24px rgba(28,25,23,0.18);
+      z-index: 300; overflow: hidden;
+      animation: fadeUp 0.18s ease;
+    }
+    .lang-dropdown.hidden { display: none !important; }
+    .lang-option {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; font-size: 13px;
+      font-family: var(--font-body); color: var(--ink);
+      cursor: pointer; transition: background 0.15s;
+      border: none; background: none; width: 100%;
+      text-align: left;
+    }
+    .lang-option:hover { background: var(--parchment); }
+    .lang-option.active { color: var(--terracotta); font-weight: 700; }
+    .lang-option__name { font-weight: 600; }
+    .lang-option__native { font-size: 12px; color: var(--muted); }
+
     /* ─── Responsive Helpers ─────────────────────────────────────── */
     @media (max-width: 540px) {
       .header-actions .btn--ghost { display: none; }
@@ -586,8 +622,32 @@
       <span class="site-logo__tag" id="siteTagline">A Journal of Human Stories</span>
     </a>
     <div class="header-actions">
-      <button class="btn btn--ghost" onclick="openEditorModal()">Write to Editor</button>
-      <button class="btn btn--primary" onclick="openShareModal()">+ Share Story</button>
+      <div class="lang-selector" id="langSelector">
+        <button class="lang-btn" onclick="toggleLangDropdown()" id="langBtn">
+          <span class="lang-flag" id="langFlag">🌐</span>
+          <span id="langLabel">EN</span> ▾
+        </button>
+        <div class="lang-dropdown hidden" id="langDropdown">
+          <button class="lang-option active" id="langOpt-en" onclick="setLanguage('en')">
+            <span class="lang-flag">🇬🇧</span>
+            <span><span class="lang-option__name">English</span></span>
+          </button>
+          <button class="lang-option" id="langOpt-es" onclick="setLanguage('es')">
+            <span class="lang-flag">🇪🇸</span>
+            <span><span class="lang-option__name">Spanish</span> <span class="lang-option__native">Español</span></span>
+          </button>
+          <button class="lang-option" id="langOpt-hi" onclick="setLanguage('hi')">
+            <span class="lang-flag">🇮🇳</span>
+            <span><span class="lang-option__name">Hindi</span> <span class="lang-option__native">हिंदी</span></span>
+          </button>
+          <button class="lang-option" id="langOpt-bn" onclick="setLanguage('bn')">
+            <span class="lang-flag">🇧🇩</span>
+            <span><span class="lang-option__name">Bangla</span> <span class="lang-option__native">বাংলা</span></span>
+          </button>
+        </div>
+      </div>
+      <button class="btn btn--ghost" data-i18n="writeToEditor" onclick="openEditorModal()">Write to Editor</button>
+      <button class="btn btn--primary" data-i18n="shareStory" onclick="openShareModal()">+ Share Story</button>
     </div>
   </div>
 </header>
@@ -595,8 +655,8 @@
 <!-- ───────────── HERO QUOTE ───────────── -->
 <div class="hero-quote">
   <blockquote>
-    "There is no greater agony than bearing an untold story inside you."
-    <cite>— Maya Angelou</cite>
+    <span data-i18n="heroQuote">"There is no greater agony than bearing an untold story inside you."</span>
+    <cite data-i18n="heroQuoteAuthor">— Maya Angelou</cite>
   </blockquote>
 </div>
 
@@ -625,11 +685,11 @@
 
     <!-- CTA Banner -->
     <div class="cta-banner">
-      <h2>Your story matters.</h2>
-      <p>Every story shared here has the power to reach someone who needed it. Share publicly or write privately to the editor — your words have a home here.</p>
+      <h2 data-i18n="ctaTitle">Your story matters.</h2>
+      <p data-i18n="ctaText">Every story shared here has the power to reach someone who needed it. Share publicly or write privately to the editor — your words have a home here.</p>
       <div class="cta-banner__actions">
-        <button class="btn btn--primary" onclick="openShareModal()">Share Your Story</button>
-        <button class="btn btn--ghost" onclick="openEditorModal()">Write to the Editor</button>
+        <button class="btn btn--primary" data-i18n="ctaShareBtn" onclick="openShareModal()">Share Your Story</button>
+        <button class="btn btn--ghost" data-i18n="ctaEditorBtn" onclick="openEditorModal()">Write to the Editor</button>
       </div>
     </div>
   </div>
@@ -637,9 +697,9 @@
   <!-- Footer -->
   <footer class="site-footer">
     <div class="site-footer__name" id="footerName">Whispered Pages</div>
-    <p class="site-footer__sub">A safe space for human stories. All stories are shared with care and respect.</p>
+    <p class="site-footer__sub" data-i18n="footerSub">A safe space for human stories. All stories are shared with care and respect.</p>
     <div class="site-footer__admin">
-      <button onclick="openAdminLogin()">Editor Login</button>
+      <button data-i18n="editorLogin" onclick="openAdminLogin()">Editor Login</button>
     </div>
   </footer>
 </main>
@@ -676,18 +736,18 @@
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header modal-header--terra">
       <div>
-        <div class="modal-header__title">Share Your Story</div>
-        <div class="modal-header__sub">Your words might be exactly what someone needs to hear</div>
+        <div class="modal-header__title" data-i18n="shareModalTitle">Share Your Story</div>
+        <div class="modal-header__sub" data-i18n="shareModalSub">Your words might be exactly what someone needs to hear</div>
       </div>
       <button class="modal-close" onclick="closeModal('shareModal')">×</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label class="form-label">Story Title</label>
-        <input class="form-input" id="shareTitle" placeholder="Give your story a title…" />
+        <label class="form-label" data-i18n="storyTitleLabel">Story Title</label>
+        <input class="form-input" id="shareTitle" data-i18n-placeholder="storyTitlePlaceholder" placeholder="Give your story a title…" />
       </div>
       <div class="form-group">
-        <label class="form-label">Category</label>
+        <label class="form-label" data-i18n="categoryLabel">Category</label>
         <select class="form-select" id="shareCategory">
           <option>Life Change</option>
           <option>Family</option>
@@ -701,11 +761,11 @@
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Your Story</label>
-        <textarea class="form-textarea form-textarea--tall" id="shareContent" placeholder="Write your story here. Take your time. There is no word limit — say everything you need to say."></textarea>
-        <p class="form-hint">You are completely anonymous. No name, email, or account required.</p>
+        <label class="form-label" data-i18n="yourStoryLabel">Your Story</label>
+        <textarea class="form-textarea form-textarea--tall" id="shareContent" data-i18n-placeholder="yourStoryPlaceholder" placeholder="Write your story here. Take your time. There is no word limit — say everything you need to say."></textarea>
+        <p class="form-hint" data-i18n="anonHint">You are completely anonymous. No name, email, or account required.</p>
       </div>
-      <button class="btn btn--primary btn--block" onclick="submitStory()" id="shareBtnSubmit">
+      <button class="btn btn--primary btn--block" data-i18n="publishBtn" onclick="submitStory()" id="shareBtnSubmit">
         Publish Your Story →
       </button>
     </div>
@@ -720,21 +780,21 @@
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header modal-header--blue">
       <div>
-        <div class="modal-header__title">Write to the Editor</div>
-        <div class="modal-header__sub">Share privately — receive personal guidance</div>
+        <div class="modal-header__title" data-i18n="editorModalTitle">Write to the Editor</div>
+        <div class="modal-header__sub" data-i18n="editorModalSub">Share privately — receive personal guidance</div>
       </div>
       <button class="modal-close" onclick="closeModal('editorModal')">×</button>
     </div>
     <div class="modal-body" id="editorModalBody">
-      <div class="editor-quote">
+      <div class="editor-quote" data-i18n="editorQuote">
         "Sometimes a story is too tender for the world just yet. Write to me privately — tell me what you're carrying — and I'll respond with whatever wisdom I can offer."
       </div>
       <div class="form-group">
-        <label class="form-label">Your Story or Question</label>
-        <textarea class="form-textarea form-textarea--tall" id="editorContent" placeholder="Tell me what's on your mind. What are you going through? What do you need?"></textarea>
-        <p class="form-hint">Completely private and anonymous. Only the editor can see this message.</p>
+        <label class="form-label" data-i18n="editorContentLabel">Your Story or Question</label>
+        <textarea class="form-textarea form-textarea--tall" id="editorContent" data-i18n-placeholder="editorContentPlaceholder" placeholder="Tell me what's on your mind. What are you going through? What do you need?"></textarea>
+        <p class="form-hint" data-i18n="editorHint">Completely private and anonymous. Only the editor can see this message.</p>
       </div>
-      <button class="btn btn--blue btn--block" onclick="submitEditorMessage()" id="editorBtnSubmit">
+      <button class="btn btn--blue btn--block" data-i18n="sendEditorBtn" onclick="submitEditorMessage()" id="editorBtnSubmit">
         Send to the Editor →
       </button>
     </div>
@@ -749,16 +809,16 @@
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header modal-header--ink">
       <div>
-        <div class="modal-header__title">Editor Login</div>
+        <div class="modal-header__title" data-i18n="adminLoginTitle">Editor Login</div>
       </div>
       <button class="modal-close" onclick="closeModal('adminLoginModal')">×</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label class="form-label">Password</label>
-        <input class="form-input" type="password" id="adminPassword" placeholder="Enter editor password" onkeydown="if(event.key==='Enter')adminLogin()" />
+        <label class="form-label" data-i18n="adminPasswordLabel">Password</label>
+        <input class="form-input" type="password" id="adminPassword" data-i18n-placeholder="adminPasswordPlaceholder" placeholder="Enter editor password" onkeydown="if(event.key==='Enter')adminLogin()" />
       </div>
-      <button class="btn btn--dark btn--block" onclick="adminLogin()">Sign In</button>
+      <button class="btn btn--dark btn--block" data-i18n="adminSignIn" onclick="adminLogin()">Sign In</button>
     </div>
   </div>
 </div>
@@ -771,16 +831,16 @@
   <div class="modal modal--wide" onclick="event.stopPropagation()">
     <div class="modal-header modal-header--ink">
       <div>
-        <div class="modal-header__title">Editor Dashboard</div>
-        <div class="modal-header__sub">Manage stories and respond to private messages</div>
+        <div class="modal-header__title" data-i18n="adminDashTitle">Editor Dashboard</div>
+        <div class="modal-header__sub" data-i18n="adminDashSub">Manage stories and respond to private messages</div>
       </div>
       <button class="modal-close" onclick="closeModal('adminModal')">×</button>
     </div>
     <div class="modal-body">
       <div class="admin-tabs">
-        <button class="admin-tab active" onclick="adminSwitchTab('inbox',this)">📬 Inbox</button>
-        <button class="admin-tab" onclick="adminSwitchTab('stories',this)">📖 Stories</button>
-        <button class="admin-tab" onclick="adminSwitchTab('settings',this)">⚙️ Settings</button>
+        <button class="admin-tab active" data-i18n="adminTabInbox" onclick="adminSwitchTab('inbox',this)">📬 Inbox</button>
+        <button class="admin-tab" data-i18n="adminTabStories" onclick="adminSwitchTab('stories',this)">📖 Stories</button>
+        <button class="admin-tab" data-i18n="adminTabSettings" onclick="adminSwitchTab('settings',this)">⚙️ Settings</button>
       </div>
       <div id="adminTabInbox"></div>
       <div id="adminTabStories" class="hidden"></div>
@@ -800,6 +860,256 @@ let allStories = [];
 let activeFilter = 'All';
 let activeStoryData = null;
 let isAdmin = false;
+let currentLang = 'en';
+
+/* ─── Translations ──────────────────────────────────────────────── */
+const TRANSLATIONS = {
+  en: {
+    writeToEditor:'Write to Editor', shareStory:'+ Share Story',
+    heroQuote:'"There is no greater agony than bearing an untold story inside you."',
+    heroQuoteAuthor:'— Maya Angelou',
+    filterStory:'story', filterStories:'stories',
+    ctaTitle:'Your story matters.',
+    ctaText:'Every story shared here has the power to reach someone who needed it. Share publicly or write privately to the editor — your words have a home here.',
+    ctaShareBtn:'Share Your Story', ctaEditorBtn:'Write to the Editor',
+    footerSub:'A safe space for human stories. All stories are shared with care and respect.',
+    editorLogin:'Editor Login',
+    shareModalTitle:'Share Your Story', shareModalSub:'Your words might be exactly what someone needs to hear',
+    storyTitleLabel:'Story Title', storyTitlePlaceholder:'Give your story a title…',
+    categoryLabel:'Category', yourStoryLabel:'Your Story',
+    yourStoryPlaceholder:'Write your story here. Take your time. There is no word limit — say everything you need to say.',
+    anonHint:'You are completely anonymous. No name, email, or account required.',
+    publishBtn:'Publish Your Story →',
+    editorModalTitle:'Write to the Editor', editorModalSub:'Share privately — receive personal guidance',
+    editorQuote:'"Sometimes a story is too tender for the world just yet. Write to me privately — tell me what you\'re carrying — and I\'ll respond with whatever wisdom I can offer."',
+    editorContentLabel:'Your Story or Question',
+    editorContentPlaceholder:'Tell me what\'s on your mind. What are you going through? What do you need?',
+    editorHint:'Completely private and anonymous. Only the editor can see this message.',
+    sendEditorBtn:'Send to the Editor →',
+    adminLoginTitle:'Editor Login', adminPasswordLabel:'Password',
+    adminPasswordPlaceholder:'Enter editor password', adminSignIn:'Sign In',
+    adminDashTitle:'Editor Dashboard', adminDashSub:'Manage stories and respond to private messages',
+    adminTabInbox:'📬 Inbox', adminTabStories:'📖 Stories', adminTabSettings:'⚙️ Settings',
+    loadingStories:'Loading stories…', anonymous:'Anonymous',
+    responsesAdvice:'Responses & Advice', noResponses:'No responses yet. Be the first to offer a word.',
+    leaveResponse:'Leave a Response', tabSupport:'💙 Support', tabAdvice:'💡 Advice',
+    commentPlaceholder:'Share your thoughts, your own experience, or words of support…',
+    anonHintShort:'You are completely anonymous.',
+    postResponse:'Post Response', posting:'Posting…', publishing:'Publishing…', sending:'Sending…',
+    toastResponsePosted:'Response posted. Thank you. 💙',
+    toastStoryLive:'Your story is live. Thank you for sharing. 🌿',
+    toastNeedTitle:'Please add a title.', toastNeedContent:'Please write at least a few sentences.',
+    toastNeedComment:'Please write something first.',
+    toastNeedMore:'Please share a bit more so the editor can help.',
+    toastErrorPosting:'Error posting. Try again.', toastErrorPublishing:'Error publishing. Please try again.',
+    toastErrorSending:'Error sending. Please try again.',
+    msgReceived:'Message received.',
+    msgReceivedSub:'The editor has received your story. Responses are written with care — please allow some time. You may share your email in the message if you\'d like a reply sent directly to you.',
+    emptyState:'No stories in this category yet. Be the first to share.',
+    sendResponse:'Send Response', noPrivateMessages:'No private messages yet.',
+    noStoriesYet:'No stories yet.', deleteStory:'Delete',
+    catAll:'All', catLifeChange:'Life Change', catFamily:'Family', catConnection:'Connection',
+    catLossGrief:'Loss & Grief', catLove:'Love', catResilience:'Resilience',
+    catIdentity:'Identity', catHealing:'Healing', catOther:'Other',
+  },
+  es: {
+    writeToEditor:'Escribir al Editor', shareStory:'+ Compartir Historia',
+    heroQuote:'"No hay mayor agonía que llevar una historia sin contar dentro de ti."',
+    heroQuoteAuthor:'— Maya Angelou',
+    filterStory:'historia', filterStories:'historias',
+    ctaTitle:'Tu historia importa.',
+    ctaText:'Cada historia compartida aquí tiene el poder de llegar a alguien que lo necesitaba. Comparte públicamente o escribe en privado al editor — tus palabras tienen un hogar aquí.',
+    ctaShareBtn:'Comparte tu Historia', ctaEditorBtn:'Escribir al Editor',
+    footerSub:'Un espacio seguro para historias humanas. Todas las historias se comparten con cuidado y respeto.',
+    editorLogin:'Acceso del Editor',
+    shareModalTitle:'Comparte tu Historia', shareModalSub:'Tus palabras podrían ser exactamente lo que alguien necesita escuchar',
+    storyTitleLabel:'Título de la Historia', storyTitlePlaceholder:'Dale un título a tu historia…',
+    categoryLabel:'Categoría', yourStoryLabel:'Tu Historia',
+    yourStoryPlaceholder:'Escribe tu historia aquí. Tómate tu tiempo. No hay límite de palabras — di todo lo que necesites.',
+    anonHint:'Eres completamente anónimo. No se requiere nombre, correo ni cuenta.',
+    publishBtn:'Publicar tu Historia →',
+    editorModalTitle:'Escribir al Editor', editorModalSub:'Comparte en privado — recibe orientación personal',
+    editorQuote:'"A veces una historia es demasiado tierna para el mundo todavía. Escríbeme en privado — dime lo que llevas — y responderé con la sabiduría que pueda ofrecer."',
+    editorContentLabel:'Tu Historia o Pregunta',
+    editorContentPlaceholder:'¿Qué tienes en mente? ¿Qué estás viviendo? ¿Qué necesitas?',
+    editorHint:'Completamente privado y anónimo. Solo el editor puede ver este mensaje.',
+    sendEditorBtn:'Enviar al Editor →',
+    adminLoginTitle:'Acceso del Editor', adminPasswordLabel:'Contraseña',
+    adminPasswordPlaceholder:'Ingresa la contraseña del editor', adminSignIn:'Iniciar Sesión',
+    adminDashTitle:'Panel del Editor', adminDashSub:'Gestiona historias y responde mensajes privados',
+    adminTabInbox:'📬 Bandeja', adminTabStories:'📖 Historias', adminTabSettings:'⚙️ Ajustes',
+    loadingStories:'Cargando historias…', anonymous:'Anónimo',
+    responsesAdvice:'Respuestas y Consejos', noResponses:'Sin respuestas aún. Sé el primero en ofrecer una palabra.',
+    leaveResponse:'Deja una Respuesta', tabSupport:'💙 Apoyo', tabAdvice:'💡 Consejo',
+    commentPlaceholder:'Comparte tus pensamientos, tu experiencia o palabras de apoyo…',
+    anonHintShort:'Eres completamente anónimo.',
+    postResponse:'Publicar Respuesta', posting:'Publicando…', publishing:'Publicando…', sending:'Enviando…',
+    toastResponsePosted:'Respuesta publicada. Gracias. 💙',
+    toastStoryLive:'Tu historia está en vivo. Gracias por compartir. 🌿',
+    toastNeedTitle:'Por favor añade un título.', toastNeedContent:'Por favor escribe al menos unas pocas frases.',
+    toastNeedComment:'Por favor escribe algo primero.',
+    toastNeedMore:'Por favor comparte un poco más para que el editor pueda ayudar.',
+    toastErrorPosting:'Error al publicar. Inténtalo de nuevo.', toastErrorPublishing:'Error al publicar. Inténtalo de nuevo.',
+    toastErrorSending:'Error al enviar. Inténtalo de nuevo.',
+    msgReceived:'Mensaje recibido.',
+    msgReceivedSub:'El editor ha recibido tu historia. Las respuestas se escriben con cuidado — por favor espera un momento. Puedes compartir tu correo en el mensaje si deseas una respuesta directa.',
+    emptyState:'Sin historias en esta categoría todavía. Sé el primero en compartir.',
+    sendResponse:'Enviar Respuesta', noPrivateMessages:'Sin mensajes privados todavía.',
+    noStoriesYet:'Sin historias todavía.', deleteStory:'Eliminar',
+    catAll:'Todos', catLifeChange:'Cambio de Vida', catFamily:'Familia', catConnection:'Conexión',
+    catLossGrief:'Pérdida y Duelo', catLove:'Amor', catResilience:'Resiliencia',
+    catIdentity:'Identidad', catHealing:'Sanación', catOther:'Otro',
+  },
+  hi: {
+    writeToEditor:'संपादक को लिखें', shareStory:'+ कहानी साझा करें',
+    heroQuote:'"अंदर एक अनकही कहानी रखने से बड़ी कोई पीड़ा नहीं होती।"',
+    heroQuoteAuthor:'— माया एंजेलो',
+    filterStory:'कहानी', filterStories:'कहानियाँ',
+    ctaTitle:'आपकी कहानी मायने रखती है।',
+    ctaText:'यहाँ साझा की गई हर कहानी किसी जरूरतमंद तक पहुँचने की क्षमता रखती है। सार्वजनिक रूप से साझा करें या संपादक को निजी तौर पर लिखें — आपके शब्दों का यहाँ घर है।',
+    ctaShareBtn:'अपनी कहानी साझा करें', ctaEditorBtn:'संपादक को लिखें',
+    footerSub:'मानवीय कहानियों के लिए एक सुरक्षित स्थान। सभी कहानियाँ देखभाल और सम्मान के साथ साझा की जाती हैं।',
+    editorLogin:'संपादक लॉगिन',
+    shareModalTitle:'अपनी कहानी साझा करें', shareModalSub:'आपके शब्द ठीक वही हो सकते हैं जो किसी को सुनने की जरूरत है',
+    storyTitleLabel:'कहानी का शीर्षक', storyTitlePlaceholder:'अपनी कहानी को एक शीर्षक दें…',
+    categoryLabel:'श्रेणी', yourStoryLabel:'आपकी कहानी',
+    yourStoryPlaceholder:'यहाँ अपनी कहानी लिखें। अपना समय लें। कोई शब्द सीमा नहीं — जो भी कहना हो कहें।',
+    anonHint:'आप पूरी तरह गुमनाम हैं। कोई नाम, ईमेल या खाता आवश्यक नहीं।',
+    publishBtn:'अपनी कहानी प्रकाशित करें →',
+    editorModalTitle:'संपादक को लिखें', editorModalSub:'निजी रूप से साझा करें — व्यक्तिगत मार्गदर्शन पाएं',
+    editorQuote:'"कभी-कभी एक कहानी अभी दुनिया के लिए बहुत नाजुक होती है। मुझे निजी तौर पर लिखें — बताएं क्या बोझ उठा रहे हैं — और मैं जो भी ज्ञान दे सकूं, दूंगा।"',
+    editorContentLabel:'आपकी कहानी या प्रश्न',
+    editorContentPlaceholder:'मुझे बताएं क्या चल रहा है। आप किससे गुजर रहे हैं? आपको क्या चाहिए?',
+    editorHint:'पूरी तरह निजी और गुमनाम। केवल संपादक यह संदेश देख सकते हैं।',
+    sendEditorBtn:'संपादक को भेजें →',
+    adminLoginTitle:'संपादक लॉगिन', adminPasswordLabel:'पासवर्ड',
+    adminPasswordPlaceholder:'संपादक पासवर्ड दर्ज करें', adminSignIn:'साइन इन करें',
+    adminDashTitle:'संपादक डैशबोर्ड', adminDashSub:'कहानियाँ प्रबंधित करें और निजी संदेशों का जवाब दें',
+    adminTabInbox:'📬 इनबॉक्स', adminTabStories:'📖 कहानियाँ', adminTabSettings:'⚙️ सेटिंग्स',
+    loadingStories:'कहानियाँ लोड हो रही हैं…', anonymous:'गुमनाम',
+    responsesAdvice:'प्रतिक्रियाएं और सलाह', noResponses:'अभी कोई प्रतिक्रिया नहीं। एक शब्द देने वाले पहले बनें।',
+    leaveResponse:'एक प्रतिक्रिया छोड़ें', tabSupport:'💙 समर्थन', tabAdvice:'💡 सलाह',
+    commentPlaceholder:'अपने विचार, अनुभव या समर्थन के शब्द साझा करें…',
+    anonHintShort:'आप पूरी तरह गुमनाम हैं।',
+    postResponse:'प्रतिक्रिया पोस्ट करें', posting:'पोस्ट हो रहा है…', publishing:'प्रकाशित हो रहा है…', sending:'भेजा जा रहा है…',
+    toastResponsePosted:'प्रतिक्रिया पोस्ट हुई। धन्यवाद। 💙',
+    toastStoryLive:'आपकी कहानी लाइव है। साझा करने के लिए धन्यवाद। 🌿',
+    toastNeedTitle:'कृपया एक शीर्षक जोड़ें।', toastNeedContent:'कृपया कम से कम कुछ वाक्य लिखें।',
+    toastNeedComment:'कृपया पहले कुछ लिखें।',
+    toastNeedMore:'कृपया थोड़ा और साझा करें ताकि संपादक मदद कर सकें।',
+    toastErrorPosting:'पोस्ट करने में त्रुटि। फिर से प्रयास करें।', toastErrorPublishing:'प्रकाशित करने में त्रुटि। फिर से प्रयास करें।',
+    toastErrorSending:'भेजने में त्रुटि। फिर से प्रयास करें।',
+    msgReceived:'संदेश मिल गया।',
+    msgReceivedSub:'संपादक को आपकी कहानी मिल गई है। प्रतिक्रियाएं ध्यान से लिखी जाती हैं — कृपया थोड़ा समय दें। यदि सीधे जवाब चाहते हैं तो संदेश में अपना ईमेल साझा कर सकते हैं।',
+    emptyState:'इस श्रेणी में अभी कोई कहानी नहीं। साझा करने वाले पहले बनें।',
+    sendResponse:'प्रतिक्रिया भेजें', noPrivateMessages:'अभी कोई निजी संदेश नहीं।',
+    noStoriesYet:'अभी कोई कहानी नहीं।', deleteStory:'हटाएं',
+    catAll:'सभी', catLifeChange:'जीवन परिवर्तन', catFamily:'परिवार', catConnection:'संबंध',
+    catLossGrief:'हानि और दुख', catLove:'प्रेम', catResilience:'सहनशीलता',
+    catIdentity:'पहचान', catHealing:'उपचार', catOther:'अन्य',
+  },
+  bn: {
+    writeToEditor:'সম্পাদককে লিখুন', shareStory:'+ গল্প শেয়ার করুন',
+    heroQuote:'"ভেতরে একটা অকথিত গল্প বহন করার চেয়ে বড় যন্ত্রণা আর নেই।"',
+    heroQuoteAuthor:'— মায়া অ্যাঞ্জেলো',
+    filterStory:'গল্প', filterStories:'গল্প',
+    ctaTitle:'আপনার গল্প গুরুত্বপূর্ণ।',
+    ctaText:'এখানে শেয়ার করা প্রতিটি গল্পের শক্তি আছে কারো কাছে পৌঁছানোর যার এটা দরকার ছিল। প্রকাশ্যে শেয়ার করুন বা সম্পাদককে ব্যক্তিগতভাবে লিখুন — আপনার কথার এখানে একটা ঘর আছে।',
+    ctaShareBtn:'আপনার গল্প শেয়ার করুন', ctaEditorBtn:'সম্পাদককে লিখুন',
+    footerSub:'মানবিক গল্পের জন্য একটি নিরাপদ স্থান। সমস্ত গল্প যত্ন ও সম্মানের সাথে শেয়ার করা হয়।',
+    editorLogin:'সম্পাদক লগইন',
+    shareModalTitle:'আপনার গল্প শেয়ার করুন', shareModalSub:'আপনার কথাগুলো হয়তো ঠিক সেটাই যা কেউ শুনতে চায়',
+    storyTitleLabel:'গল্পের শিরোনাম', storyTitlePlaceholder:'আপনার গল্পকে একটি শিরোনাম দিন…',
+    categoryLabel:'বিভাগ', yourStoryLabel:'আপনার গল্প',
+    yourStoryPlaceholder:'এখানে আপনার গল্প লিখুন। সময় নিন। কোনো শব্দ সীমা নেই — যা বলার সব বলুন।',
+    anonHint:'আপনি সম্পূর্ণ বেনামী। কোনো নাম, ইমেইল বা অ্যাকাউন্ট প্রয়োজন নেই।',
+    publishBtn:'আপনার গল্প প্রকাশ করুন →',
+    editorModalTitle:'সম্পাদককে লিখুন', editorModalSub:'ব্যক্তিগতভাবে শেয়ার করুন — ব্যক্তিগত গাইডেন্স পান',
+    editorQuote:'"কখনো কখনো একটা গল্প এখনও দুনিয়ার জন্য খুব কোমল। আমাকে ব্যক্তিগতভাবে লিখুন — বলুন কী বহন করছেন — এবং আমি যা পারি সেই জ্ঞান দিয়ে সাড়া দেব।"',
+    editorContentLabel:'আপনার গল্প বা প্রশ্ন',
+    editorContentPlaceholder:'আমাকে বলুন কী চলছে। আপনি কী দিয়ে যাচ্ছেন? আপনার কী দরকার?',
+    editorHint:'সম্পূর্ণ ব্যক্তিগত ও বেনামী। শুধু সম্পাদক এই বার্তা দেখতে পারবেন।',
+    sendEditorBtn:'সম্পাদককে পাঠান →',
+    adminLoginTitle:'সম্পাদক লগইন', adminPasswordLabel:'পাসওয়ার্ড',
+    adminPasswordPlaceholder:'সম্পাদকের পাসওয়ার্ড লিখুন', adminSignIn:'সাইন ইন করুন',
+    adminDashTitle:'সম্পাদক ড্যাশবোর্ড', adminDashSub:'গল্প পরিচালনা করুন এবং ব্যক্তিগত বার্তার জবাব দিন',
+    adminTabInbox:'📬 ইনবক্স', adminTabStories:'📖 গল্পগুলো', adminTabSettings:'⚙️ সেটিংস',
+    loadingStories:'গল্প লোড হচ্ছে…', anonymous:'বেনামী',
+    responsesAdvice:'প্রতিক্রিয়া ও পরামর্শ', noResponses:'এখনো কোনো প্রতিক্রিয়া নেই। একটি কথা বলার প্রথম হন।',
+    leaveResponse:'একটি প্রতিক্রিয়া রাখুন', tabSupport:'💙 সমর্থন', tabAdvice:'💡 পরামর্শ',
+    commentPlaceholder:'আপনার চিন্তা, অভিজ্ঞতা বা সমর্থনের কথা শেয়ার করুন…',
+    anonHintShort:'আপনি সম্পূর্ণ বেনামী।',
+    postResponse:'প্রতিক্রিয়া পোস্ট করুন', posting:'পোস্ট হচ্ছে…', publishing:'প্রকাশ হচ্ছে…', sending:'পাঠানো হচ্ছে…',
+    toastResponsePosted:'প্রতিক্রিয়া পোস্ট হয়েছে। ধন্যবাদ। 💙',
+    toastStoryLive:'আপনার গল্প লাইভ। শেয়ার করার জন্য ধন্যবাদ। 🌿',
+    toastNeedTitle:'অনুগ্রহ করে একটি শিরোনাম যোগ করুন।', toastNeedContent:'অনুগ্রহ করে অন্তত কয়েকটি বাক্য লিখুন।',
+    toastNeedComment:'অনুগ্রহ করে প্রথমে কিছু লিখুন।',
+    toastNeedMore:'অনুগ্রহ করে আরও একটু শেয়ার করুন যাতে সম্পাদক সাহায্য করতে পারেন।',
+    toastErrorPosting:'পোস্ট করতে ত্রুটি। আবার চেষ্টা করুন।', toastErrorPublishing:'প্রকাশ করতে ত্রুটি। আবার চেষ্টা করুন।',
+    toastErrorSending:'পাঠাতে ত্রুটি। আবার চেষ্টা করুন।',
+    msgReceived:'বার্তা পাওয়া গেছে।',
+    msgReceivedSub:'সম্পাদক আপনার গল্প পেয়েছেন। প্রতিক্রিয়া যত্নের সাথে লেখা হয় — অনুগ্রহ করে কিছু সময় দিন। সরাসরি উত্তর চাইলে বার্তায় ইমেইল শেয়ার করতে পারেন।',
+    emptyState:'এই বিভাগে এখনো কোনো গল্প নেই। প্রথম শেয়ার করুন।',
+    sendResponse:'প্রতিক্রিয়া পাঠান', noPrivateMessages:'এখনো কোনো ব্যক্তিগত বার্তা নেই।',
+    noStoriesYet:'এখনো কোনো গল্প নেই।', deleteStory:'মুছুন',
+    catAll:'সব', catLifeChange:'জীবন পরিবর্তন', catFamily:'পরিবার', catConnection:'সংযোগ',
+    catLossGrief:'হারানো ও শোক', catLove:'ভালোবাসা', catResilience:'সহনশীলতা',
+    catIdentity:'পরিচয়', catHealing:'নিরাময়', catOther:'অন্যান্য',
+  },
+};
+
+function t(key) { return (TRANSLATIONS[currentLang] || TRANSLATIONS.en)[key] || TRANSLATIONS.en[key] || key; }
+
+const LANG_META = {
+  en: { flag:'🇬🇧', label:'EN' },
+  es: { flag:'🇪🇸', label:'ES' },
+  hi: { flag:'🇮🇳', label:'HI' },
+  bn: { flag:'🇧🇩', label:'BN' },
+};
+
+function setLanguage(lang) {
+  currentLang = lang;
+  // Update button
+  document.getElementById('langFlag').textContent = LANG_META[lang].flag;
+  document.getElementById('langLabel').textContent = LANG_META[lang].label;
+  // Mark active option
+  document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('active'));
+  const opt = document.getElementById('langOpt-' + lang);
+  if (opt) opt.classList.add('active');
+  closeLangDropdown();
+  applyLang();
+  renderStories(); // re-render dynamic content
+}
+
+function applyLang() {
+  // Update elements with data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  // Update placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+}
+
+function toggleLangDropdown() {
+  document.getElementById('langDropdown').classList.toggle('hidden');
+}
+function closeLangDropdown() {
+  document.getElementById('langDropdown').classList.add('hidden');
+}
+document.addEventListener('click', e => {
+  const sel = document.getElementById('langSelector');
+  if (sel && !sel.contains(e.target)) closeLangDropdown();
+});
+
+// Category key mapping (English DB value → translation key)
+const CAT_KEY = {
+  'All':'catAll', 'Life Change':'catLifeChange', 'Family':'catFamily',
+  'Connection':'catConnection', 'Loss & Grief':'catLossGrief', 'Love':'catLove',
+  'Resilience':'catResilience', 'Identity':'catIdentity', 'Healing':'catHealing', 'Other':'catOther',
+};
+
 
 const CATEGORIES = ['All','Life Change','Family','Connection','Loss & Grief','Love','Resilience','Identity','Healing','Other'];
 
@@ -909,7 +1219,7 @@ async function deleteStory(id) {
 function renderFilterBar() {
   const bar = document.getElementById('filterBar');
   bar.innerHTML = CATEGORIES.map(cat =>
-    `<button class="filter-pill ${cat === activeFilter ? 'active' : ''}" onclick="setFilter('${cat}')">${cat}</button>`
+    `<button class="filter-pill ${cat === activeFilter ? 'active' : ''}" onclick="setFilter('${cat}')">${t(CAT_KEY[cat] || cat)}</button>`
   ).join('');
   updateFilterCount();
 }
@@ -922,7 +1232,7 @@ function setFilter(cat) {
 
 function updateFilterCount() {
   const filtered = activeFilter === 'All' ? allStories : allStories.filter(s => s.category === activeFilter);
-  document.getElementById('filterCount').textContent = `${filtered.length} ${filtered.length === 1 ? 'story' : 'stories'}`;
+  document.getElementById('filterCount').textContent = `${filtered.length} ${filtered.length === 1 ? t('filterStory') : t('filterStories')}`;
 }
 
 /* ─── Render: Story Cards ────────────────────────────────────── */
@@ -932,7 +1242,7 @@ function renderStories() {
   const filtered = activeFilter === 'All' ? allStories : allStories.filter(s => s.category === activeFilter);
 
   if (!filtered.length) {
-    grid.innerHTML = `<div class="empty-state">No stories in this category yet. Be the first to share.</div>`;
+    grid.innerHTML = `<div class="empty-state">${t('emptyState')}</div>`;
     return;
   }
 
@@ -942,13 +1252,13 @@ function renderStories() {
     return `
       <div class="story-card" style="animation-delay:${i * 0.06}s" onclick="openStory(${story.id})">
         <div class="story-card__meta">
-          <span class="category-badge">${esc(story.category)}</span>
+          <span class="category-badge">${esc(t(CAT_KEY[story.category] || story.category))}</span>
           <span class="story-date">${date}</span>
         </div>
         <h2 class="story-card__title">${esc(story.title)}</h2>
         <p class="story-card__excerpt">${esc(excerpt)}</p>
         <div class="story-card__footer">
-          <span class="anon-label">— Anonymous</span>
+          <span class="anon-label">— ${t('anonymous')}</span>
           <div class="story-stats">
             <button class="stat-btn" onclick="event.stopPropagation(); handleLike(${story.id}, ${story.likes}, this)">
               <span class="icon">♡</span> <span class="like-count">${story.likes}</span>
@@ -994,7 +1304,7 @@ async function openStory(id) {
     <div class="story-detail__byline">
       <div class="avatar">✦</div>
       <div>
-        <div class="story-detail__author">Anonymous</div>
+        <div class="story-detail__author">${t('anonymous')}</div>
         <div class="story-detail__author-date">${formatDate(story.created_at)}</div>
       </div>
     </div>
@@ -1014,21 +1324,21 @@ async function openStory(id) {
 function renderCommentSection(comments) {
   const section = document.getElementById('storyModalComments');
   section.innerHTML = `
-    <h3>Responses &amp; Advice (${comments.length})</h3>
+    <h3>${t('responsesAdvice')} (${comments.length})</h3>
     <div id="commentsList">
-      ${comments.length ? comments.map(renderComment).join('') : '<p class="text-muted">No responses yet. Be the first to offer a word.</p>'}
+      ${comments.length ? comments.map(renderComment).join('') : `<p class="text-muted">${t('noResponses')}</p>`}
     </div>
     <div class="comment-form">
-      <h4>Leave a Response</h4>
+      <h4>${t('leaveResponse')}</h4>
       <div class="comment-type-tabs">
-        <button class="comment-type-tab active" id="tabSupport" onclick="switchCommentTab('support')">💙 Support</button>
-        <button class="comment-type-tab" id="tabAdvice" onclick="switchCommentTab('advice')">💡 Advice</button>
+        <button class="comment-type-tab active" id="tabSupport" onclick="switchCommentTab('support')">${t('tabSupport')}</button>
+        <button class="comment-type-tab" id="tabAdvice" onclick="switchCommentTab('advice')">${t('tabAdvice')}</button>
       </div>
       <div class="form-group">
-        <textarea class="form-textarea" id="commentContent" placeholder="Share your thoughts, your own experience, or words of support…"></textarea>
-        <p class="form-hint">You are completely anonymous.</p>
+        <textarea class="form-textarea" id="commentContent" placeholder="${t('commentPlaceholder')}"></textarea>
+        <p class="form-hint">${t('anonHintShort')}</p>
       </div>
-      <button class="btn btn--dark btn--block" onclick="submitComment()" id="commentSubmitBtn">Post Response</button>
+      <button class="btn btn--dark btn--block" onclick="submitComment()" id="commentSubmitBtn">${t('postResponse')}</button>
     </div>
   `;
 }
@@ -1061,11 +1371,11 @@ function renderComment(c) {
 /* ─── Submit Comment ─────────────────────────────────────────── */
 async function submitComment() {
   const content = document.getElementById('commentContent').value.trim();
-  if (!content) { showToast('Please write something first.', 'error'); return; }
+  if (!content) { showToast(t('toastNeedComment'), 'error'); return; }
   if (!activeStoryData) return;
 
   const btn = document.getElementById('commentSubmitBtn');
-  btn.textContent = 'Posting…'; btn.disabled = true;
+  btn.textContent = t('posting'); btn.disabled = true;
 
   const { data, error } = await insertComment({
     story_id: activeStoryData.id,
@@ -1074,9 +1384,9 @@ async function submitComment() {
     is_owner: false,
   });
 
-  btn.textContent = 'Post Response'; btn.disabled = false;
+  btn.textContent = t('postResponse'); btn.disabled = false;
 
-  if (error) { showToast('Error posting. Try again.', 'error'); return; }
+  if (error) { showToast(t('toastErrorPosting'), 'error'); return; }
 
   document.getElementById('commentContent').value = '';
   const list = document.getElementById('commentsList');
@@ -1084,7 +1394,7 @@ async function submitComment() {
   list.insertAdjacentHTML('beforeend', renderComment(data));
   const h3 = document.querySelector('#storyModalComments h3');
   if (h3) h3.textContent = h3.textContent.replace(/\d+/, n => parseInt(n) + 1);
-  showToast('Response posted. Thank you. 💙');
+  showToast(t('toastResponsePosted'));
 }
 
 /* ─── Submit Story ───────────────────────────────────────────── */
@@ -1093,44 +1403,43 @@ async function submitStory() {
   const content = document.getElementById('shareContent').value.trim();
   const category = document.getElementById('shareCategory').value;
 
-  if (!title) { showToast('Please add a title.', 'error'); return; }
-  if (content.length < 50) { showToast('Please write at least a few sentences.', 'error'); return; }
+  if (!title) { showToast(t('toastNeedTitle'), 'error'); return; }
+  if (content.length < 50) { showToast(t('toastNeedContent'), 'error'); return; }
 
   const btn = document.getElementById('shareBtnSubmit');
-  btn.textContent = 'Publishing…'; btn.disabled = true;
+  btn.textContent = t('publishing'); btn.disabled = true;
 
   const { data, error } = await insertStory({ title, content, category, likes: 0 });
-  btn.textContent = 'Publish Your Story →'; btn.disabled = false;
+  btn.textContent = t('publishBtn'); btn.disabled = false;
 
-  if (error) { showToast('Error publishing. Please try again.', 'error'); return; }
+  if (error) { showToast(t('toastErrorPublishing'), 'error'); return; }
 
   closeModal('shareModal');
   document.getElementById('shareTitle').value = '';
   document.getElementById('shareContent').value = '';
   await fetchStories();
-  showToast('Your story is live. Thank you for sharing. 🌿');
+  showToast(t('toastStoryLive'));
 }
 
 /* ─── Submit Editor Message ──────────────────────────────────── */
 async function submitEditorMessage() {
   const content = document.getElementById('editorContent').value.trim();
-  if (content.length < 30) { showToast('Please share a bit more so the editor can help.', 'error'); return; }
+  if (content.length < 30) { showToast(t('toastNeedMore'), 'error'); return; }
 
   const btn = document.getElementById('editorBtnSubmit');
-  btn.textContent = 'Sending…'; btn.disabled = true;
+  btn.textContent = t('sending'); btn.disabled = true;
 
   const { error } = await insertEditorMessage({ content, response: null, is_answered: false });
-  btn.textContent = 'Send to the Editor →'; btn.disabled = false;
+  btn.textContent = t('sendEditorBtn'); btn.disabled = false;
 
-  if (error) { showToast('Error sending. Please try again.', 'error'); return; }
+  if (error) { showToast(t('toastErrorSending'), 'error'); return; }
 
   document.getElementById('editorModalBody').innerHTML = `
     <div style="text-align:center;padding:40px 20px">
       <div style="font-size:40px;margin-bottom:16px">✉️</div>
-      <h3 style="font-family:var(--font-display);font-size:22px;margin-bottom:12px">Message received.</h3>
+      <h3 style="font-family:var(--font-display);font-size:22px;margin-bottom:12px">${t('msgReceived')}</h3>
       <p class="text-muted" style="line-height:1.7;max-width:360px;margin:0 auto">
-        The editor has received your story. Responses are written with care — please allow some time.
-        You may share your email in the message if you'd like a reply sent directly to you.
+        ${t('msgReceivedSub')}
       </p>
     </div>`;
 }
@@ -1179,7 +1488,7 @@ async function adminLoadInbox() {
   const messages = await fetchEditorMessages();
 
   if (!messages.length) {
-    container.innerHTML = `<p class="text-muted text-center" style="padding:40px 0">No private messages yet.</p>`;
+    container.innerHTML = `<p class="text-muted text-center" style="padding:40px 0">${t('noPrivateMessages')}</p>`;
     return;
   }
 
@@ -1207,7 +1516,7 @@ function adminMsgCard(msg) {
       ${!msg.is_answered ? `
         <textarea class="form-textarea" id="response-${msg.id}" placeholder="Write your response…" style="min-height:80px"></textarea>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn--green btn--sm" onclick="adminSendResponse('${msg.id}')">Send Response</button>
+        <button class="btn btn--green btn--sm" onclick="adminSendResponse('${msg.id}')">${t('sendResponse')}</button>
         </div>` : ''}
     </div>`;
 }
@@ -1223,7 +1532,7 @@ async function adminSendResponse(id) {
 function adminLoadStories() {
   const container = document.getElementById('adminTabStories');
   if (!allStories.length) {
-    container.innerHTML = `<p class="text-muted text-center" style="padding:40px 0">No stories yet.</p>`;
+    container.innerHTML = `<p class="text-muted text-center" style="padding:40px 0">${t('noStoriesYet')}</p>`;
     return;
   }
   container.innerHTML = `
@@ -1234,7 +1543,7 @@ function adminLoadStories() {
             <div class="admin-story-title">${esc(s.title)}</div>
             <div class="admin-story-meta">${s.category} · ${formatDate(s.created_at)} · ♥ ${s.likes}</div>
           </div>
-          <button class="btn btn--muted btn--sm" onclick="adminDeleteStory(${s.id}, '${esc(s.title).replace(/'/g, "\\'")}')">Delete</button>
+          <button class="btn btn--muted btn--sm" onclick="adminDeleteStory(${s.id}, '${esc(s.title).replace(/'/g, "\\'")}')"> ${t('deleteStory')}</button>
         </div>`).join('')}
     </div>`;
 }
@@ -1342,15 +1651,15 @@ function openEditorModal() {
   // Reset editor modal body each time
   document.getElementById('editorModalBody').innerHTML = `
     <div class="editor-quote">
-      "Sometimes a story is too tender for the world just yet. Write to me privately — tell me what you're carrying — and I'll respond with whatever wisdom I can offer."
+      ${t('editorQuote')}
     </div>
     <div class="form-group">
-      <label class="form-label">Your Story or Question</label>
-      <textarea class="form-textarea form-textarea--tall" id="editorContent" placeholder="Tell me what's on your mind. What are you going through? What do you need?"></textarea>
-      <p class="form-hint">Completely private and anonymous. Only the editor can see this message.</p>
+      <label class="form-label">${t('editorContentLabel')}</label>
+      <textarea class="form-textarea form-textarea--tall" id="editorContent" placeholder="${t('editorContentPlaceholder')}"></textarea>
+      <p class="form-hint">${t('editorHint')}</p>
     </div>
     <button class="btn btn--blue btn--block" onclick="submitEditorMessage()" id="editorBtnSubmit">
-      Send to the Editor →
+      ${t('sendEditorBtn')}
     </button>`;
   openModal('editorModal');
 }
@@ -1393,6 +1702,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('siteTagline').textContent = CONFIG.SITE_TAGLINE;
   document.getElementById('footerName').textContent = CONFIG.SITE_NAME;
   document.title = CONFIG.SITE_NAME + ' — ' + CONFIG.SITE_TAGLINE;
+
+  applyLang(); // apply default English translations to data-i18n elements
 
   const connected = initSupabase();
   if (connected) await fetchStories();
