@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Whispered Pages — A Journal of Human Stories</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <!-- ============================================================
+       ⚙️  CONFIGURATION — Edit these values before deploying
+       ============================================================
+       1. Create a free project at https://supabase.com
+       2. Go to Project Settings → API
+       3. Copy your Project URL and anon/public key below
+       4. Run the SQL in README.md to create the tables
+       5. Change ADMIN_PASSWORD to something secret
+       ============================================================ -->
+  <script>
+    const CONFIG = {
+      SUPABASE_URL:      'YOUR_SUPABASE_URL',
+      SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
+      ADMIN_PASSWORD:    'editor2024',        // ← change this!
+      SITE_NAME:         'Whispered Pages',
+      SITE_TAGLINE:      'A Journal of Human Stories',
+    };
+  </script>
+
+  <style>
+    /* ─── Variables ─────────────────────────────────────────────── */
+    :root {
+      --cream:      #F5F0E8;
+      --parchment:  #EDE5D0;
+      --border:     #D6CDB8;
+      --ink:        #1C1917;
+      --ink-soft:   #292524;
+      --warm-gray:  #78716C;
+      --muted:      #A8A29E;
+      --terracotta: #C2714F;
+      --rust:       #9B4F2A;
+      --deep-blue:  #1E3A5F;
+      --card-bg:    #FDFAF4;
+      --success:    #6B7F6A;
+      --radius:     4px;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'Lora', Georgia, serif;
+    }
+
+    /* ─── Reset ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--cream);
+      font-family: var(--font-body);
+      color: var(--ink);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Scrollbar ──────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--parchment); }
+    ::-webkit-scrollbar-thumb { background: var(--terracotta); border-radius: 3px; }
+
+    /* ─── Typography ─────────────────────────────────────────────── */
+    h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.25; }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font-family: var(--font-body); }
+
+    /* ─── Layout ─────────────────────────────────────────────────── */
+    .container { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+    .container--wide { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+    /* ─── Header ─────────────────────────────────────────────────── */
+    .site-header {
+      background: var(--ink);
+      border-bottom: 3px solid var(--terracotta);
+      position: sticky; top: 0; z-index: 200;
+    }
+    .site-header__inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      gap: 12px;
+    }
+    .site-logo__name {
+      font-family: var(--font-display);
+      font-size: clamp(20px, 4vw, 28px);
+      font-weight: 900; color: var(--cream);
+      letter-spacing: -0.01em; line-height: 1;
+    }
+    .site-logo__tag {
+      font-size: 11px; color: var(--muted);
+      letter-spacing: 0.18em; text-transform: uppercase;
+      margin-top: 4px; display: block;
+    }
+    .header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: var(--radius); padding: 9px 16px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; transition: all 0.18s; }
+    .btn--primary { background: var(--terracotta); color: #fff; }
+    .btn--primary:hover { background: var(--rust); }
+    .btn--ghost { background: none; border: 1px solid #57534E; color: var(--parchment); }
+    .btn--ghost:hover { border-color: var(--terracotta); color: var(--terracotta); }
+    .btn--dark { background: var(--ink); color: var(--cream); }
+    .btn--dark:hover { background: #2C2825; }
+    .btn--muted { background: none; border: 1px solid var(--border); color: var(--warm-gray); }
+    .btn--muted:hover { border-color: var(--terracotta); color: var(--terracotta); }
+    .btn--block { width: 100%; justify-content: center; padding: 13px; font-size: 14px; }
+    .btn--sm { padding: 6px 12px; font-size: 12px; }
+    .btn--blue { background: var(--deep-blue); color: #fff; }
+    .btn--blue:hover { background: #162D4A; }
+    .btn--green { background: var(--success); color: #fff; }
+    .btn--green:hover { background: #5A6D59; }
+
+    /* ─── Hero Quote ─────────────────────────────────────────────── */
+    .hero-quote {
+      background: var(--parchment);
+      border-bottom: 1px solid var(--border);
+      padding: 22px 20px;
+      text-align: center;
+    }
+    .hero-quote blockquote {
+      font-family: var(--font-display);
+      font-size: clamp(15px, 2.5vw, 18px);
+      font-style: italic; color: #57534E;
+      max-width: 560px; margin: 0 auto;
+      line-height: 1.6;
+    }
+    .hero-quote cite {
+      display: block; font-style: normal;
+      font-size: 12px; color: var(--muted);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* ─── Filter Bar ─────────────────────────────────────────────── */
+    .filter-bar {
+      padding: 20px 0 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+    .filter-bar__scroll {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding-bottom: 4px; -webkit-overflow-scrolling: touch;
+    }
+    .filter-bar__scroll::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      flex-shrink: 0; background: none;
+      border: 1px solid var(--border);
+      color: var(--warm-gray); padding: 6px 14px;
+      border-radius: 20px; font-size: 13px;
+      font-family: var(--font-body);
+      transition: all 0.18s;
+    }
+    .filter-pill.active, .filter-pill:hover {
+      background: var(--ink); border-color: var(--ink);
+      color: var(--cream);
+    }
+    .filter-count {
+      font-size: 12px; color: var(--muted);
+      font-style: italic; margin-top: 10px;
+    }
+
+    /* ─── Story Cards ─────────────────────────────────────────────── */
+    .stories-grid { display: grid; gap: 18px; }
+    .story-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(20px, 4vw, 30px);
+      cursor: pointer; transition: all 0.2s;
+      position: relative; overflow: hidden;
+      animation: fadeUp 0.35s ease both;
+    }
+    .story-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 4px; height: 100%;
+      background: var(--terracotta);
+      border-radius: 4px 0 0 4px;
+    }
+    .story-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(28,25,23,0.1);
+    }
+    .story-card__meta {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 12px; gap: 8px;
+    }
+    .category-badge {
+      background: var(--parchment); color: var(--rust);
+      padding: 3px 10px; border-radius: 2px;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .story-date { font-size: 11px; color: var(--muted); font-style: italic; white-space: nowrap; }
+    .story-card__title {
+      font-size: clamp(18px, 3vw, 22px);
+      font-weight: 700; color: var(--ink);
+      margin-bottom: 10px; line-height: 1.3;
+    }
+    .story-card__excerpt {
+      font-size: 14px; color: #57534E;
+      line-height: 1.7; margin-bottom: 18px;
+    }
+    .story-card__footer {
+      display: flex; justify-content: space-between;
+      align-items: center; gap: 8px;
+    }
+    .anon-label {
+      font-size: 13px; color: var(--warm-gray);
+      font-style: italic;
+    }
+    .story-stats { display: flex; gap: 14px; align-items: center; }
+    .stat-btn {
+      background: none; border: none;
+      font-size: 13px; color: var(--muted);
+      display: flex; align-items: center; gap: 4px;
+      padding: 0; font-family: var(--font-body);
+      transition: color 0.18s;
+    }
+    .stat-btn:hover { color: var(--terracotta); }
+    .stat-btn.liked { color: var(--terracotta); }
+    .stat-btn .icon { font-size: 15px; }
+
+    /* ─── Empty State ────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center; padding: 80px 20px;
+      color: var(--muted); font-style: italic; font-size: 16px;
+    }
+
+    /* ─── CTA Banner ─────────────────────────────────────────────── */
+    .cta-banner {
+      background: var(--ink); border-radius: var(--radius);
+      padding: clamp(32px, 6vw, 56px) clamp(24px, 5vw, 48px);
+      text-align: center; margin: 48px 0;
+      position: relative; overflow: hidden;
+    }
+    .cta-banner::before, .cta-banner::after {
+      content: ''; position: absolute;
+      border-radius: 50%; pointer-events: none;
+    }
+    .cta-banner::before {
+      width: 200px; height: 200px;
+      background: rgba(194,113,79,0.1);
+      top: -60px; right: -60px;
+    }
+    .cta-banner::after {
+      width: 150px; height: 150px;
+      background: rgba(30,58,95,0.2);
+      bottom: -50px; left: -30px;
+    }
+    .cta-banner h2 {
+      color: var(--cream); font-size: clamp(22px, 4vw, 30px);
+      margin-bottom: 12px;
+    }
+    .cta-banner p {
+      color: var(--muted); font-size: 15px;
+      max-width: 460px; margin: 0 auto 28px;
+      line-height: 1.7; font-style: italic;
+    }
+    .cta-banner__actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    /* ─── Footer ─────────────────────────────────────────────────── */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 20px; text-align: center;
+      margin-top: 16px;
+    }
+    .site-footer__name {
+      font-family: var(--font-display); font-style: italic;
+      font-size: 18px; color: var(--warm-gray);
+      margin-bottom: 6px;
+    }
+    .site-footer__sub { font-size: 12px; color: var(--muted); letter-spacing: 0.06em; }
+    .site-footer__admin {
+      margin-top: 16px; font-size: 12px; color: var(--border);
+    }
+    .site-footer__admin button {
+      background: none; border: none; color: var(--border);
+      font-size: 12px; text-decoration: underline;
+      cursor: pointer; font-family: var(--font-body);
+    }
+    .site-footer__admin button:hover { color: var(--warm-gray); }
+
+    /* ─── Modals ─────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(28,25,23,0.65);
+      z-index: 500; display: flex;
+      align-items: flex-start; justify-content: center;
+      padding: 16px 16px 32px;
+      overflow-y: auto;
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.2s ease;
+    }
+    .modal {
+      background: var(--card-bg);
+      width: 100%; max-width: 680px;
+      border-radius: 6px; overflow: hidden;
+      position: relative;
+      margin: auto 0;
+      animation: slideUp 0.25s ease;
+    }
+    .modal--wide { max-width: 900px; }
+    .modal-header {
+      padding: 20px 24px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .modal-header--ink { background: var(--ink); }
+    .modal-header--terra { background: var(--terracotta); }
+    .modal-header--blue { background: var(--deep-blue); }
+    .modal-header--green { background: var(--success); }
+    .modal-header__title {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 700;
+      color: var(--cream);
+    }
+    .modal-header__sub { font-size: 13px; color: rgba(245,240,232,0.7); margin-top: 3px; }
+    .modal-close {
+      background: none; border: none;
+      color: rgba(245,240,232,0.7); font-size: 26px;
+      line-height: 1; padding: 0; flex-shrink: 0; margin-left: 12px;
+      transition: color 0.15s;
+    }
+    .modal-close:hover { color: var(--cream); }
+    .modal-body { padding: clamp(20px, 4vw, 32px); }
+    .modal-body--bg { background: var(--parchment); }
+
+    /* ─── Story Detail ───────────────────────────────────────────── */
+    .story-detail__category-row {
+      display: flex; align-items: center;
+      gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .story-detail__title {
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 18px;
+    }
+    .story-detail__byline {
+      display: flex; align-items: center;
+      gap: 12px; padding-bottom: 24px;
+      border-bottom: 1px solid var(--border); margin-bottom: 28px;
+    }
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--parchment); border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 14px; color: var(--warm-gray);
+      flex-shrink: 0;
+    }
+    .avatar--sm { width: 32px; height: 32px; font-size: 12px; }
+    .story-detail__author { font-weight: 700; font-size: 14px; }
+    .story-detail__author-date { font-size: 12px; color: var(--muted); font-style: italic; }
+    .story-detail__content p {
+      font-size: clamp(15px, 2.5vw, 17px);
+      line-height: 1.85; color: var(--ink-soft);
+      margin-bottom: 22px;
+    }
+
+    /* ─── Comments Section ───────────────────────────────────────── */
+    .comments-section { padding: clamp(20px, 4vw, 32px); background: var(--parchment); }
+    .comments-section h3 {
+      font-size: 20px; margin-bottom: 22px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .comment-item {
+      display: flex; gap: 12px; margin-bottom: 18px;
+      animation: fadeUp 0.25s ease;
+    }
+    .comment-bubble {
+      flex: 1; background: var(--card-bg);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .comment-bubble__meta {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 6px; gap: 8px;
+    }
+    .comment-bubble__author { font-weight: 700; font-size: 13px; }
+    .comment-bubble__date { font-size: 11px; color: var(--muted); font-style: italic; }
+    .comment-bubble__text { font-size: 14px; color: #57534E; line-height: 1.65; }
+    .comment-bubble--advice { border-left: 3px solid var(--deep-blue); }
+    .advice-tag {
+      font-size: 10px; background: var(--deep-blue); color: #fff;
+      padding: 2px 7px; border-radius: 2px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-right: 8px;
+    }
+    .comment-bubble--owner { border-left: 3px solid var(--terracotta); }
+    .owner-tag {
+      font-size: 10px; background: var(--terracotta); color: #fff;
+      padding: 2px 7px; border-radius: 2px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-right: 8px;
+    }
+
+    /* ─── Comment Form ───────────────────────────────────────────── */
+    .comment-form { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 22px; }
+    .comment-form h4 { font-size: 16px; margin-bottom: 14px; }
+    .comment-type-tabs {
+      display: flex; gap: 0; margin-bottom: 14px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .comment-type-tab {
+      flex: 1; padding: 8px; background: none; border: none;
+      font-size: 12px; font-weight: 600; color: var(--warm-gray);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      transition: all 0.18s; font-family: var(--font-body);
+      border-right: 1px solid var(--border);
+    }
+    .comment-type-tab:last-child { border-right: none; }
+    .comment-type-tab.active { background: var(--ink); color: var(--cream); }
+
+    /* ─── Form Elements ──────────────────────────────────────────── */
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block; font-size: 12px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ink); margin-bottom: 6px;
+    }
+    .form-input, .form-textarea, .form-select {
+      width: 100%; padding: 10px 14px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      font-family: var(--font-body); font-size: 14px;
+      background: var(--card-bg); color: var(--ink);
+      outline: none; transition: border-color 0.18s;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--terracotta);
+    }
+    .form-textarea { min-height: 100px; resize: vertical; line-height: 1.7; }
+    .form-textarea--tall { min-height: 200px; }
+    .form-hint { font-size: 12px; color: var(--muted); margin-top: 5px; font-style: italic; }
+
+    /* ─── Admin Panel ────────────────────────────────────────────── */
+    .admin-tabs {
+      display: flex; border-bottom: 2px solid var(--border);
+      margin-bottom: 24px; overflow-x: auto;
+    }
+    .admin-tab {
+      padding: 10px 18px; background: none; border: none;
+      font-family: var(--font-body); font-size: 13px;
+      font-weight: 700; letter-spacing: 0.05em;
+      color: var(--warm-gray); text-transform: uppercase;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px; white-space: nowrap;
+      transition: all 0.18s;
+    }
+    .admin-tab.active { color: var(--terracotta); border-bottom-color: var(--terracotta); }
+    .admin-tab:hover { color: var(--ink); }
+    .admin-msg-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px;
+      margin-bottom: 14px; animation: fadeUp 0.25s ease;
+    }
+    .admin-msg-card--answered { border-left: 4px solid var(--success); }
+    .admin-msg-card--pending { border-left: 4px solid var(--terracotta); }
+    .admin-msg__meta { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .admin-msg__story { font-size: 14px; color: var(--ink-soft); line-height: 1.65; margin-bottom: 12px; }
+    .admin-msg__response {
+      background: var(--parchment); border-radius: var(--radius);
+      padding: 12px 14px; font-size: 14px; color: #57534E;
+      line-height: 1.65; margin-bottom: 10px; border-left: 3px solid var(--success);
+    }
+    .admin-stories-list .story-row {
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 12px 0;
+      border-bottom: 1px solid var(--border); gap: 10px;
+    }
+    .admin-story-title { font-weight: 700; font-size: 14px; flex: 1; }
+    .admin-story-meta { font-size: 12px; color: var(--muted); font-style: italic; }
+    .badge-pill {
+      padding: 3px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .badge-pill--pending { background: #FEF3C7; color: #92400E; }
+    .badge-pill--answered { background: #D1FAE5; color: #065F46; }
+
+    /* ─── Loading ────────────────────────────────────────────────── */
+    .loading {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 60px 20px; gap: 16px;
+    }
+    .loading__dots { display: flex; gap: 6px; }
+    .loading__dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--terracotta);
+      animation: pulse 1.2s infinite;
+    }
+    .loading__dot:nth-child(2) { animation-delay: 0.3s; }
+    .loading__dot:nth-child(3) { animation-delay: 0.6s; }
+    .loading__text { font-style: italic; color: var(--warm-gray); font-size: 14px; }
+
+    /* ─── Toast ──────────────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--ink); color: var(--cream);
+      padding: 12px 22px; border-radius: 24px;
+      font-size: 14px; z-index: 999;
+      transition: transform 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      pointer-events: none; white-space: nowrap;
+    }
+    .toast.visible { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: var(--success); }
+    .toast.error { background: #9B2020; }
+
+    /* ─── Write to Editor ────────────────────────────────────────── */
+    .editor-quote {
+      background: var(--parchment); border-radius: var(--radius);
+      padding: 16px 20px; margin-bottom: 22px;
+      border-left: 3px solid var(--deep-blue);
+      font-style: italic; font-size: 15px;
+      color: #57534E; line-height: 1.65;
+    }
+    .response-card {
+      background: var(--parchment);
+      border-radius: var(--radius);
+      border-left: 4px solid var(--deep-blue);
+      padding: 24px 26px;
+    }
+    .response-card__header {
+      font-size: 12px; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--deep-blue);
+      font-weight: 700; margin-bottom: 14px;
+    }
+    .response-card__body p {
+      font-size: 16px; line-height: 1.8;
+      color: var(--ink-soft); margin-bottom: 14px;
+    }
+
+    /* ─── Responsive Helpers ─────────────────────────────────────── */
+    @media (max-width: 540px) {
+      .header-actions .btn--ghost { display: none; }
+      .comment-type-tab { font-size: 11px; padding: 8px 6px; }
+      .admin-tabs { gap: 0; }
+      .admin-tab { padding: 10px 12px; font-size: 12px; }
+    }
+
+    /* ─── Animations ─────────────────────────────────────────────── */
+    @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(14px) }
+      to   { opacity:1; transform:translateY(0) }
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(30px) }
+      to   { opacity:1; transform:translateY(0) }
+    }
+    @keyframes pulse {
+      0%,100% { opacity:.3; transform:scale(.8) }
+      50%      { opacity:1;  transform:scale(1.2) }
+    }
+
+    /* ─── Misc ───────────────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+    .text-center { text-align: center; }
+    .text-muted { color: var(--muted); font-style: italic; }
+    .mt-16 { margin-top: 16px; }
+    .italic { font-style: italic; }
+    .hidden { display: none !important; }
+    .warn-banner {
+      background: #FEF3C7; border: 1px solid #F59E0B;
+      border-radius: var(--radius); padding: 12px 16px;
+      font-size: 13px; color: #92400E; margin-bottom: 16px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ───────────── TOAST ───────────── -->
+<div class="toast" id="toast"></div>
+
+<!-- ───────────── HEADER ───────────── -->
+<header class="site-header">
+  <div class="site-header__inner">
+    <a href="#" onclick="closeAllModals()">
+      <div class="site-logo__name" id="siteName">Whispered Pages</div>
+      <span class="site-logo__tag" id="siteTagline">A Journal of Human Stories</span>
+    </a>
+    <div class="header-actions">
+      <button class="btn btn--ghost" onclick="openEditorModal()">Write to Editor</button>
+      <button class="btn btn--primary" onclick="openShareModal()">+ Share Story</button>
+    </div>
+  </div>
+</header>
+
+<!-- ───────────── HERO QUOTE ───────────── -->
+<div class="hero-quote">
+  <blockquote>
+    "There is no greater agony than bearing an untold story inside you."
+    <cite>— Maya Angelou</cite>
+  </blockquote>
+</div>
+
+<!-- ───────────── MAIN FEED ───────────── -->
+<main>
+  <div class="container">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-bar__scroll" id="filterBar">
+        <!-- Pills injected by JS -->
+      </div>
+      <div class="filter-count" id="filterCount"></div>
+    </div>
+
+    <!-- Stories -->
+    <div class="stories-grid" id="storiesGrid">
+      <div class="loading">
+        <div class="loading__dots">
+          <div class="loading__dot"></div>
+          <div class="loading__dot"></div>
+          <div class="loading__dot"></div>
+        </div>
+        <div class="loading__text">Loading stories…</div>
+      </div>
+    </div>
+
+    <!-- CTA Banner -->
+    <div class="cta-banner">
+      <h2>Your story matters.</h2>
+      <p>Every story shared here has the power to reach someone who needed it. Share publicly or write privately to the editor — your words have a home here.</p>
+      <div class="cta-banner__actions">
+        <button class="btn btn--primary" onclick="openShareModal()">Share Your Story</button>
+        <button class="btn btn--ghost" onclick="openEditorModal()">Write to the Editor</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="site-footer__name" id="footerName">Whispered Pages</div>
+    <p class="site-footer__sub">A safe space for human stories. All stories are shared with care and respect.</p>
+    <div class="site-footer__admin">
+      <button onclick="openAdminLogin()">Editor Login</button>
+    </div>
+  </footer>
+</main>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL: Story Detail
+═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="storyModal" onclick="handleOverlayClick(event,'storyModal')">
+  <div class="modal modal--wide" onclick="event.stopPropagation()">
+    <div class="modal-header modal-header--ink">
+      <div>
+        <div class="modal-header__title" id="storyModalCategory">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('storyModal')">×</button>
+    </div>
+
+    <div class="modal-body" id="storyModalBody">
+      <!-- Content injected -->
+    </div>
+
+    <!-- Comments -->
+    <div class="comments-section" id="storyModalComments">
+      <!-- Injected -->
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL: Share Story
+═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="shareModal" onclick="handleOverlayClick(event,'shareModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header modal-header--terra">
+      <div>
+        <div class="modal-header__title">Share Your Story</div>
+        <div class="modal-header__sub">Your words might be exactly what someone needs to hear</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('shareModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Story Title</label>
+        <input class="form-input" id="shareTitle" placeholder="Give your story a title…" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select" id="shareCategory">
+          <option>Life Change</option>
+          <option>Family</option>
+          <option>Connection</option>
+          <option>Loss &amp; Grief</option>
+          <option>Love</option>
+          <option>Resilience</option>
+          <option>Identity</option>
+          <option>Healing</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Story</label>
+        <textarea class="form-textarea form-textarea--tall" id="shareContent" placeholder="Write your story here. Take your time. There is no word limit — say everything you need to say."></textarea>
+        <p class="form-hint">You are completely anonymous. No name, email, or account required.</p>
+      </div>
+      <button class="btn btn--primary btn--block" onclick="submitStory()" id="shareBtnSubmit">
+        Publish Your Story →
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL: Write to Editor
+═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="editorModal" onclick="handleOverlayClick(event,'editorModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header modal-header--blue">
+      <div>
+        <div class="modal-header__title">Write to the Editor</div>
+        <div class="modal-header__sub">Share privately — receive personal guidance</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('editorModal')">×</button>
+    </div>
+    <div class="modal-body" id="editorModalBody">
+      <div class="editor-quote">
+        "Sometimes a story is too tender for the world just yet. Write to me privately — tell me what you're carrying — and I'll respond with whatever wisdom I can offer."
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Story or Question</label>
+        <textarea class="form-textarea form-textarea--tall" id="editorContent" placeholder="Tell me what's on your mind. What are you going through? What do you need?"></textarea>
+        <p class="form-hint">Completely private and anonymous. Only the editor can see this message.</p>
+      </div>
+      <button class="btn btn--blue btn--block" onclick="submitEditorMessage()" id="editorBtnSubmit">
+        Send to the Editor →
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL: Admin Login
+═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="adminLoginModal" onclick="handleOverlayClick(event,'adminLoginModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header modal-header--ink">
+      <div>
+        <div class="modal-header__title">Editor Login</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('adminLoginModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="adminPassword" placeholder="Enter editor password" onkeydown="if(event.key==='Enter')adminLogin()" />
+      </div>
+      <button class="btn btn--dark btn--block" onclick="adminLogin()">Sign In</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL: Admin Panel
+═══════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="adminModal" onclick="handleOverlayClick(event,'adminModal')">
+  <div class="modal modal--wide" onclick="event.stopPropagation()">
+    <div class="modal-header modal-header--ink">
+      <div>
+        <div class="modal-header__title">Editor Dashboard</div>
+        <div class="modal-header__sub">Manage stories and respond to private messages</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('adminModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="adminSwitchTab('inbox',this)">📬 Inbox</button>
+        <button class="admin-tab" onclick="adminSwitchTab('stories',this)">📖 Stories</button>
+        <button class="admin-tab" onclick="adminSwitchTab('settings',this)">⚙️ Settings</button>
+      </div>
+      <div id="adminTabInbox"></div>
+      <div id="adminTabStories" class="hidden"></div>
+      <div id="adminTabSettings" class="hidden"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPT
+═══════════════════════════════════════════════════════════════ -->
+<script>
+/* ─── Init ─────────────────────────────────────────────────────── */
+let db;
+let allStories = [];
+let activeFilter = 'All';
+let activeStoryData = null;
+let isAdmin = false;
+
+const CATEGORIES = ['All','Life Change','Family','Connection','Loss & Grief','Love','Resilience','Identity','Healing','Other'];
+
+function initSupabase() {
+  if (CONFIG.SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+    showDemoMode();
+    return false;
+  }
+  try {
+    db = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+    return true;
+  } catch(e) {
+    showDemoMode();
+    return false;
+  }
+}
+
+/* ─── Demo Mode (no Supabase configured) ─────────────────────── */
+const DEMO_STORIES = [
+  { id:1, title:"The Day I Left Everything Behind", category:"Life Change", content:"At 34, I sold my apartment, quit my corporate job, and boarded a one-way flight to Portugal. Everyone thought I was having a breakdown. Maybe I was. But what I found on the other side changed everything I thought I knew about belonging.\n\nIt started the morning after my father's funeral. I woke up in my perfectly designed apartment, with my perfectly curated life, and I could not remember a single reason why any of it mattered.\n\nSo I left. And yes, it was terrifying. And yes, I cried on the plane. But slowly, slowly, I began to remember who I was before the world told me who to be.", likes:284, created_at: new Date(Date.now()-7*86400000).toISOString() },
+  { id:2, title:"Learning to Love My Mother's Silence", category:"Family", content:"My mother never said 'I love you.' Not once in thirty years. It took me until I had my own daughter to understand what she was actually saying — and how loud her silence had always been.\n\nGrowing up, I collected evidence of her indifference like stones in a pocket. Then my daughter Amara was born, and something cracked open in me.\n\nI watched myself doing the exact same things. I realized, with the force of revelation, that my mother had been speaking in a language I'd never been taught to read.", likes:412, created_at: new Date(Date.now()-14*86400000).toISOString() },
+  { id:3, title:"How a Stranger on a Train Saved My Life", category:"Connection", content:"I was planning to not go home that night. Then a woman sat down across from me and asked if I was okay. She had no idea what she did. I do not even know her name.\n\nShe was maybe 60, with silver hair and a bag full of library books. She looked at me for a moment and simply said: 'Are you alright, dear? You look like you're carrying something heavy.'\n\nNo one had asked me that in two years. I want that woman to know: she saved my life. And I have spent every day since trying to be the stranger on the train for someone else.", likes:891, created_at: new Date(Date.now()-21*86400000).toISOString() },
+];
+const DEMO_COMMENTS = {
+  1: [{ id:1, content:"This brought tears to my eyes. I'm sitting at my desk right now feeling exactly what you described. Thank you.", is_advice:false, is_owner:false, created_at: new Date().toISOString() }],
+  2: [{ id:1, content:"The reframe just healed something in me. Thank you for sharing.", is_advice:false, is_owner:false, created_at: new Date().toISOString() }],
+  3: [{ id:1, content:"I'm going to start asking people if they're okay. Really asking.", is_advice:true, is_owner:false, created_at: new Date().toISOString() }],
+};
+let demoComments = JSON.parse(JSON.stringify(DEMO_COMMENTS));
+let demoMode = false;
+let demoNextId = 10;
+
+function showDemoMode() {
+  demoMode = true;
+  allStories = DEMO_STORIES;
+  renderStories();
+  const warn = document.createElement('div');
+  warn.className = 'warn-banner container';
+  warn.style.margin = '16px auto 0';
+  warn.innerHTML = '⚠️ <strong>Demo Mode:</strong> Supabase is not configured. Stories and comments won\'t be saved permanently. See the README for setup instructions.';
+  document.querySelector('main').prepend(warn);
+}
+
+/* ─── Data Layer ─────────────────────────────────────────────── */
+async function fetchStories() {
+  if (demoMode) { renderStories(); return; }
+  const { data, error } = await db.from('stories').select('*').order('created_at', { ascending: false });
+  if (!error) { allStories = data || []; renderStories(); }
+}
+
+async function fetchComments(storyId) {
+  if (demoMode) return demoComments[storyId] || [];
+  const { data } = await db.from('comments').select('*').eq('story_id', storyId).order('created_at');
+  return data || [];
+}
+
+async function insertStory(story) {
+  if (demoMode) {
+    const s = { ...story, id: demoNextId++, likes: 0, created_at: new Date().toISOString() };
+    allStories.unshift(s);
+    return { data: s, error: null };
+  }
+  return await db.from('stories').insert(story).select().single();
+}
+
+async function insertComment(comment) {
+  if (demoMode) {
+    const c = { ...comment, id: demoNextId++, created_at: new Date().toISOString() };
+    if (!demoComments[comment.story_id]) demoComments[comment.story_id] = [];
+    demoComments[comment.story_id].push(c);
+    return { data: c, error: null };
+  }
+  return await db.from('comments').insert(comment).select().single();
+}
+
+async function likeStory(id, current) {
+  if (demoMode) {
+    const s = allStories.find(x => x.id === id);
+    if (s) s.likes = current + 1;
+    return;
+  }
+  await db.from('stories').update({ likes: current + 1 }).eq('id', id);
+}
+
+async function insertEditorMessage(msg) {
+  if (demoMode) return { error: null };
+  return await db.from('editor_messages').insert(msg);
+}
+
+async function fetchEditorMessages() {
+  if (demoMode) return [];
+  const { data } = await db.from('editor_messages').select('*').order('created_at', { ascending: false });
+  return data || [];
+}
+
+async function updateEditorResponse(id, response) {
+  if (demoMode) return;
+  await db.from('editor_messages').update({ response, is_answered: true }).eq('id', id);
+}
+
+async function deleteStory(id) {
+  if (demoMode) { allStories = allStories.filter(s => s.id !== id); return; }
+  await db.from('stories').delete().eq('id', id);
+}
+
+/* ─── Render: Filter Bar ─────────────────────────────────────── */
+function renderFilterBar() {
+  const bar = document.getElementById('filterBar');
+  bar.innerHTML = CATEGORIES.map(cat =>
+    `<button class="filter-pill ${cat === activeFilter ? 'active' : ''}" onclick="setFilter('${cat}')">${cat}</button>`
+  ).join('');
+  updateFilterCount();
+}
+
+function setFilter(cat) {
+  activeFilter = cat;
+  renderFilterBar();
+  renderStories();
+}
+
+function updateFilterCount() {
+  const filtered = activeFilter === 'All' ? allStories : allStories.filter(s => s.category === activeFilter);
+  document.getElementById('filterCount').textContent = `${filtered.length} ${filtered.length === 1 ? 'story' : 'stories'}`;
+}
+
+/* ─── Render: Story Cards ────────────────────────────────────── */
+function renderStories() {
+  renderFilterBar();
+  const grid = document.getElementById('storiesGrid');
+  const filtered = activeFilter === 'All' ? allStories : allStories.filter(s => s.category === activeFilter);
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state">No stories in this category yet. Be the first to share.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map((story, i) => {
+    const excerpt = story.content.length > 220 ? story.content.slice(0, 220).trimEnd() + '…' : story.content;
+    const date = formatDate(story.created_at);
+    return `
+      <div class="story-card" style="animation-delay:${i * 0.06}s" onclick="openStory(${story.id})">
+        <div class="story-card__meta">
+          <span class="category-badge">${esc(story.category)}</span>
+          <span class="story-date">${date}</span>
+        </div>
+        <h2 class="story-card__title">${esc(story.title)}</h2>
+        <p class="story-card__excerpt">${esc(excerpt)}</p>
+        <div class="story-card__footer">
+          <span class="anon-label">— Anonymous</span>
+          <div class="story-stats">
+            <button class="stat-btn" onclick="event.stopPropagation(); handleLike(${story.id}, ${story.likes}, this)">
+              <span class="icon">♡</span> <span class="like-count">${story.likes}</span>
+            </button>
+            <span class="stat-btn"><span class="icon">💬</span> <span id="commentCount-${story.id}">—</span></span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Load comment counts
+  filtered.forEach(story => loadCommentCount(story.id));
+}
+
+async function loadCommentCount(id) {
+  const el = document.getElementById(`commentCount-${id}`);
+  if (!el) return;
+  if (demoMode) { el.textContent = (demoComments[id] || []).length; return; }
+  const { count } = await db.from('comments').select('*', { count: 'exact', head: true }).eq('story_id', id);
+  if (el) el.textContent = count ?? 0;
+}
+
+/* ─── Handle Like ────────────────────────────────────────────── */
+async function handleLike(id, current, btn) {
+  if (btn.classList.contains('liked')) return;
+  btn.classList.add('liked');
+  btn.querySelector('.icon').textContent = '♥';
+  btn.querySelector('.like-count').textContent = current + 1;
+  await likeStory(id, current);
+  const story = allStories.find(s => s.id === id);
+  if (story) story.likes = current + 1;
+}
+
+/* ─── Open Story Modal ───────────────────────────────────────── */
+async function openStory(id) {
+  const story = allStories.find(s => s.id === id);
+  if (!story) return;
+  activeStoryData = story;
+
+  document.getElementById('storyModalCategory').textContent = story.category;
+  document.getElementById('storyModalBody').innerHTML = `
+    <div class="story-detail__title">${esc(story.title)}</div>
+    <div class="story-detail__byline">
+      <div class="avatar">✦</div>
+      <div>
+        <div class="story-detail__author">Anonymous</div>
+        <div class="story-detail__author-date">${formatDate(story.created_at)}</div>
+      </div>
+    </div>
+    <div class="story-detail__content">
+      ${story.content.split('\n\n').map(p => `<p>${esc(p)}</p>`).join('')}
+    </div>
+  `;
+
+  renderCommentSection([]);
+  openModal('storyModal');
+
+  const comments = await fetchComments(id);
+  renderCommentSection(comments);
+}
+
+/* ─── Render Comment Section ─────────────────────────────────── */
+function renderCommentSection(comments) {
+  const section = document.getElementById('storyModalComments');
+  section.innerHTML = `
+    <h3>Responses &amp; Advice (${comments.length})</h3>
+    <div id="commentsList">
+      ${comments.length ? comments.map(renderComment).join('') : '<p class="text-muted">No responses yet. Be the first to offer a word.</p>'}
+    </div>
+    <div class="comment-form">
+      <h4>Leave a Response</h4>
+      <div class="comment-type-tabs">
+        <button class="comment-type-tab active" id="tabSupport" onclick="switchCommentTab('support')">💙 Support</button>
+        <button class="comment-type-tab" id="tabAdvice" onclick="switchCommentTab('advice')">💡 Advice</button>
+      </div>
+      <div class="form-group">
+        <textarea class="form-textarea" id="commentContent" placeholder="Share your thoughts, your own experience, or words of support…"></textarea>
+        <p class="form-hint">You are completely anonymous.</p>
+      </div>
+      <button class="btn btn--dark btn--block" onclick="submitComment()" id="commentSubmitBtn">Post Response</button>
+    </div>
+  `;
+}
+
+let commentType = 'support';
+function switchCommentTab(type) {
+  commentType = type;
+  document.getElementById('tabSupport').classList.toggle('active', type === 'support');
+  document.getElementById('tabAdvice').classList.toggle('active', type === 'advice');
+}
+
+function renderComment(c) {
+  const tag = c.is_owner
+    ? `<span class="owner-tag">Editor</span>`
+    : c.is_advice ? `<span class="advice-tag">Advice</span>` : '';
+  const cls = c.is_owner ? 'comment-bubble--owner' : c.is_advice ? 'comment-bubble--advice' : '';
+  return `
+    <div class="comment-item">
+      <div class="avatar avatar--sm" style="background:var(--parchment)">✦</div>
+      <div class="comment-bubble ${cls}">
+        <div class="comment-bubble__meta">
+          <span class="comment-bubble__author">${tag}Anonymous</span>
+          <span class="comment-bubble__date">${formatDate(c.created_at)}</span>
+        </div>
+        <p class="comment-bubble__text">${esc(c.content)}</p>
+      </div>
+    </div>`;
+}
+
+/* ─── Submit Comment ─────────────────────────────────────────── */
+async function submitComment() {
+  const content = document.getElementById('commentContent').value.trim();
+  if (!content) { showToast('Please write something first.', 'error'); return; }
+  if (!activeStoryData) return;
+
+  const btn = document.getElementById('commentSubmitBtn');
+  btn.textContent = 'Posting…'; btn.disabled = true;
+
+  const { data, error } = await insertComment({
+    story_id: activeStoryData.id,
+    content,
+    is_advice: commentType === 'advice',
+    is_owner: false,
+  });
+
+  btn.textContent = 'Post Response'; btn.disabled = false;
+
+  if (error) { showToast('Error posting. Try again.', 'error'); return; }
+
+  document.getElementById('commentContent').value = '';
+  const list = document.getElementById('commentsList');
+  if (list.querySelector('.text-muted')) list.innerHTML = '';
+  list.insertAdjacentHTML('beforeend', renderComment(data));
+  const h3 = document.querySelector('#storyModalComments h3');
+  if (h3) h3.textContent = h3.textContent.replace(/\d+/, n => parseInt(n) + 1);
+  showToast('Response posted. Thank you. 💙');
+}
+
+/* ─── Submit Story ───────────────────────────────────────────── */
+async function submitStory() {
+  const title = document.getElementById('shareTitle').value.trim();
+  const content = document.getElementById('shareContent').value.trim();
+  const category = document.getElementById('shareCategory').value;
+
+  if (!title) { showToast('Please add a title.', 'error'); return; }
+  if (content.length < 50) { showToast('Please write at least a few sentences.', 'error'); return; }
+
+  const btn = document.getElementById('shareBtnSubmit');
+  btn.textContent = 'Publishing…'; btn.disabled = true;
+
+  const { data, error } = await insertStory({ title, content, category, likes: 0 });
+  btn.textContent = 'Publish Your Story →'; btn.disabled = false;
+
+  if (error) { showToast('Error publishing. Please try again.', 'error'); return; }
+
+  closeModal('shareModal');
+  document.getElementById('shareTitle').value = '';
+  document.getElementById('shareContent').value = '';
+  await fetchStories();
+  showToast('Your story is live. Thank you for sharing. 🌿');
+}
+
+/* ─── Submit Editor Message ──────────────────────────────────── */
+async function submitEditorMessage() {
+  const content = document.getElementById('editorContent').value.trim();
+  if (content.length < 30) { showToast('Please share a bit more so the editor can help.', 'error'); return; }
+
+  const btn = document.getElementById('editorBtnSubmit');
+  btn.textContent = 'Sending…'; btn.disabled = true;
+
+  const { error } = await insertEditorMessage({ content, response: null, is_answered: false });
+  btn.textContent = 'Send to the Editor →'; btn.disabled = false;
+
+  if (error) { showToast('Error sending. Please try again.', 'error'); return; }
+
+  document.getElementById('editorModalBody').innerHTML = `
+    <div style="text-align:center;padding:40px 20px">
+      <div style="font-size:40px;margin-bottom:16px">✉️</div>
+      <h3 style="font-family:var(--font-display);font-size:22px;margin-bottom:12px">Message received.</h3>
+      <p class="text-muted" style="line-height:1.7;max-width:360px;margin:0 auto">
+        The editor has received your story. Responses are written with care — please allow some time.
+        You may share your email in the message if you'd like a reply sent directly to you.
+      </p>
+    </div>`;
+}
+
+/* ─── Admin Login ────────────────────────────────────────────── */
+function openAdminLogin() {
+  if (isAdmin) { openAdminPanel(); return; }
+  document.getElementById('adminPassword').value = '';
+  openModal('adminLoginModal');
+  setTimeout(() => document.getElementById('adminPassword').focus(), 100);
+}
+
+function adminLogin() {
+  const pw = document.getElementById('adminPassword').value;
+  if (pw === CONFIG.ADMIN_PASSWORD) {
+    isAdmin = true;
+    closeModal('adminLoginModal');
+    openAdminPanel();
+  } else {
+    showToast('Incorrect password.', 'error');
+  }
+}
+
+/* ─── Admin Panel ────────────────────────────────────────────── */
+async function openAdminPanel() {
+  openModal('adminModal');
+  await adminLoadInbox();
+}
+
+async function adminSwitchTab(tab, btn) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('adminTabInbox').classList.add('hidden');
+  document.getElementById('adminTabStories').classList.add('hidden');
+  document.getElementById('adminTabSettings').classList.add('hidden');
+  document.getElementById(`adminTab${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.remove('hidden');
+  if (tab === 'inbox') await adminLoadInbox();
+  if (tab === 'stories') adminLoadStories();
+  if (tab === 'settings') adminLoadSettings();
+}
+
+async function adminLoadInbox() {
+  const container = document.getElementById('adminTabInbox');
+  container.innerHTML = `<div class="loading"><div class="loading__dots"><div class="loading__dot"></div><div class="loading__dot"></div><div class="loading__dot"></div></div><div class="loading__text">Loading messages…</div></div>`;
+
+  const messages = await fetchEditorMessages();
+
+  if (!messages.length) {
+    container.innerHTML = `<p class="text-muted text-center" style="padding:40px 0">No private messages yet.</p>`;
+    return;
+  }
+
+  const pending = messages.filter(m => !m.is_answered);
+  const answered = messages.filter(m => m.is_answered);
+
+  container.innerHTML = `
+    ${pending.length ? `<p style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--terracotta);margin-bottom:14px">Awaiting Response (${pending.length})</p>` : ''}
+    ${pending.map(m => adminMsgCard(m)).join('')}
+    ${answered.length ? `<p style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--success);margin:22px 0 14px">Answered (${answered.length})</p>` : ''}
+    ${answered.map(m => adminMsgCard(m)).join('')}
+  `;
+}
+
+function adminMsgCard(msg) {
+  const cls = msg.is_answered ? 'admin-msg-card--answered' : 'admin-msg-card--pending';
+  const badge = msg.is_answered
+    ? `<span class="badge-pill badge-pill--answered">Answered</span>`
+    : `<span class="badge-pill badge-pill--pending">Pending</span>`;
+  return `
+    <div class="admin-msg-card ${cls}" id="msgCard-${msg.id}">
+      <div class="admin-msg__meta">${formatDate(msg.created_at)} — Private Message ${badge}</div>
+      <p class="admin-msg__story">${esc(msg.content)}</p>
+      ${msg.response ? `<div class="admin-msg__response"><strong>Your response:</strong><br>${esc(msg.response)}</div>` : ''}
+      ${!msg.is_answered ? `
+        <textarea class="form-textarea" id="response-${msg.id}" placeholder="Write your response…" style="min-height:80px"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn--green btn--sm" onclick="adminSendResponse('${msg.id}')">Send Response</button>
+        </div>` : ''}
+    </div>`;
+}
+
+async function adminSendResponse(id) {
+  const response = document.getElementById(`response-${id}`).value.trim();
+  if (!response) { showToast('Please write a response first.', 'error'); return; }
+  await updateEditorResponse(id, response);
+  showToast('Response saved!', 'success');
+  await adminLoadInbox();
+}
+
+function adminLoadStories() {
+  const container = document.getElementById('adminTabStories');
+  if (!allStories.length) {
+    container.innerHTML = `<p class="text-muted text-center" style="padding:40px 0">No stories yet.</p>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="admin-stories-list">
+      ${allStories.map(s => `
+        <div class="story-row">
+          <div>
+            <div class="admin-story-title">${esc(s.title)}</div>
+            <div class="admin-story-meta">${s.category} · ${formatDate(s.created_at)} · ♥ ${s.likes}</div>
+          </div>
+          <button class="btn btn--muted btn--sm" onclick="adminDeleteStory(${s.id}, '${esc(s.title).replace(/'/g, "\\'")}')">Delete</button>
+        </div>`).join('')}
+    </div>`;
+}
+
+async function adminDeleteStory(id, title) {
+  if (!confirm(`Delete story: "${title}"?\n\nThis cannot be undone.`)) return;
+  await deleteStory(id);
+  await fetchStories();
+  adminLoadStories();
+  showToast('Story deleted.');
+}
+
+function adminLoadSettings() {
+  const container = document.getElementById('adminTabSettings');
+  container.innerHTML = `
+    <div style="max-width:480px">
+      <h4 style="font-size:16px;margin-bottom:16px">Site Settings</h4>
+      <div class="form-group">
+        <label class="form-label">Site Name</label>
+        <input class="form-input" id="settingSiteName" value="${esc(CONFIG.SITE_NAME)}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tagline</label>
+        <input class="form-input" id="settingTagline" value="${esc(CONFIG.SITE_TAGLINE)}" />
+      </div>
+      <button class="btn btn--dark" onclick="adminSaveSettings()">Save Settings</button>
+      <div class="divider"></div>
+      <h4 style="font-size:16px;margin-bottom:12px">Supabase SQL Setup</h4>
+      <p style="font-size:13px;color:var(--warm-gray);line-height:1.6;margin-bottom:10px">Run this SQL in your Supabase SQL Editor to create the required tables:</p>
+      <pre style="background:var(--ink);color:var(--cream);padding:16px;border-radius:4px;font-size:12px;overflow-x:auto;line-height:1.6">${esc(SQL_SETUP)}</pre>
+    </div>`;
+}
+
+function adminSaveSettings() {
+  CONFIG.SITE_NAME = document.getElementById('settingSiteName').value.trim() || CONFIG.SITE_NAME;
+  CONFIG.SITE_TAGLINE = document.getElementById('settingTagline').value.trim() || CONFIG.SITE_TAGLINE;
+  document.getElementById('siteName').textContent = CONFIG.SITE_NAME;
+  document.getElementById('siteTagline').textContent = CONFIG.SITE_TAGLINE;
+  document.getElementById('footerName').textContent = CONFIG.SITE_NAME;
+  document.title = CONFIG.SITE_NAME + ' — ' + CONFIG.SITE_TAGLINE;
+  showToast('Settings updated for this session. Edit CONFIG in index.html to make permanent.');
+}
+
+const SQL_SETUP = `-- Run in Supabase SQL Editor
+create table stories (
+  id bigint generated always as identity primary key,
+  title text not null,
+  content text not null,
+  category text not null default 'Other',
+  likes int not null default 0,
+  created_at timestamptz default now()
+);
+
+create table comments (
+  id bigint generated always as identity primary key,
+  story_id bigint references stories(id) on delete cascade,
+  content text not null,
+  is_advice boolean default false,
+  is_owner boolean default false,
+  created_at timestamptz default now()
+);
+
+create table editor_messages (
+  id bigint generated always as identity primary key,
+  content text not null,
+  response text,
+  is_answered boolean default false,
+  created_at timestamptz default now()
+);
+
+-- Enable public access (anonymous read/write)
+alter table stories enable row level security;
+alter table comments enable row level security;
+alter table editor_messages enable row level security;
+
+create policy "public read stories" on stories for select using (true);
+create policy "public insert stories" on stories for insert with check (true);
+create policy "public update likes" on stories for update using (true);
+create policy "public read comments" on comments for select using (true);
+create policy "public insert comments" on comments for insert with check (true);
+create policy "public insert messages" on editor_messages for insert with check (true);
+create policy "service read messages" on editor_messages for select using (true);
+create policy "service update messages" on editor_messages for update using (true);`;
+
+/* ─── Modal Helpers ──────────────────────────────────────────── */
+function openModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+  if (!document.querySelector('.modal-overlay:not(.hidden)')) {
+    document.body.style.overflow = '';
+  }
+}
+function closeAllModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e, id) {
+  if (e.target === e.currentTarget) closeModal(id);
+}
+function openShareModal() { openModal('shareModal'); }
+function openEditorModal() {
+  // Reset editor modal body each time
+  document.getElementById('editorModalBody').innerHTML = `
+    <div class="editor-quote">
+      "Sometimes a story is too tender for the world just yet. Write to me privately — tell me what you're carrying — and I'll respond with whatever wisdom I can offer."
+    </div>
+    <div class="form-group">
+      <label class="form-label">Your Story or Question</label>
+      <textarea class="form-textarea form-textarea--tall" id="editorContent" placeholder="Tell me what's on your mind. What are you going through? What do you need?"></textarea>
+      <p class="form-hint">Completely private and anonymous. Only the editor can see this message.</p>
+    </div>
+    <button class="btn btn--blue btn--block" onclick="submitEditorMessage()" id="editorBtnSubmit">
+      Send to the Editor →
+    </button>`;
+  openModal('editorModal');
+}
+
+/* ─── Toast ──────────────────────────────────────────────────── */
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type}`;
+  t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 3200);
+}
+
+/* ─── Utils ──────────────────────────────────────────────────── */
+function esc(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/* ─── Keyboard ───────────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const open = document.querySelector('.modal-overlay:not(.hidden)');
+    if (open) { closeModal(open.id); }
+  }
+});
+
+/* ─── Boot ───────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('siteName').textContent = CONFIG.SITE_NAME;
+  document.getElementById('siteTagline').textContent = CONFIG.SITE_TAGLINE;
+  document.getElementById('footerName').textContent = CONFIG.SITE_NAME;
+  document.title = CONFIG.SITE_NAME + ' — ' + CONFIG.SITE_TAGLINE;
+
+  const connected = initSupabase();
+  if (connected) await fetchStories();
+});
+</script>
+</body>
+</html>
